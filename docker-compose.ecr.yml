@@ -1,0 +1,31 @@
+services:
+  frontend:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/registration-frontend:latest
+    ports:
+      - "9090:3000"
+    depends_on:
+      - backend
+    # Note: REACT_APP_API_URL is baked at build time. Ensure the image was built
+    # with the correct REACT_APP_API_URL pointing to the backend's public URL.
+
+  backend:
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/registration-backend:latest
+    ports:
+      - "9091:8000"
+    environment:
+      - SECRET_KEY=${SECRET_KEY:-change-me}
+      # Optional DB configuration (unused by current in-memory backend)
+      # - DATABASE_URL=postgresql://postgres:postgres@db:5432/magax
+
+# Optional Postgres (uncomment to use, and enable DB usage in the app)
+#  db:
+#    image: postgres:13
+#    environment:
+#      - POSTGRES_USER=postgres
+#      - POSTGRES_PASSWORD=postgres
+#      - POSTGRES_DB=magax
+#    volumes:
+#      - postgres_data:/var/lib/postgresql/data
+
+#volumes:
+#  postgres_data:

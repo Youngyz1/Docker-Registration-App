@@ -24,8 +24,8 @@ api_router = APIRouter(prefix="/api")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:3000",  # React default
-        "http://localhost:3001"   # Optional alt port
+        "http://3.85.78.12:9090",  # React default
+        "http://localhost:9090"   # Optional alt port
     ],
     allow_credentials=True,
     allow_methods=["*"],
@@ -37,6 +37,7 @@ SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key")
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
+# Password hashing context
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/api/token")
 
@@ -69,13 +70,16 @@ fake_users_db = {}
 
 # -------------------- UTILS --------------------
 
-def verify_password(plain_password, hashed_password):
-    return pwd_context.verify(plain_password, hashed_password)
+def get_password_hash(password: str) -> str:
+    # Truncate to 72 characters to avoid bcrypt limitation
+    truncated_password = password[:72]
+    return pwd_context.hash(truncated_password)
 
-def get_password_hash(password):
-    return pwd_context.hash(password)
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    # Also truncate when verifying
+    return pwd_context.verify(plain_password[:72], hashed_password)
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
+def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -> str:
     to_encode = data.copy()
     expire = datetime.utcnow() + (expires_delta or timedelta(minutes=15))
     to_encode.update({"exp": expire})
@@ -146,4 +150,4 @@ app.include_router(api_router)
 
 if __name__ == "__main__":
     import uvicorn
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
